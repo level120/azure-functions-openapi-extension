@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
@@ -40,5 +41,15 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.FunctionApp.Models.PetStore
         /// Gets or sets the <see cref="PetStatus"/> value.
         /// </summary>
         public PetStatus? Status { get; set; }
+    }
+
+    public class BlackWidows
+    {
+        public DateTime Date { get; set; }
+    }
+
+    public class WeatherForecast
+    {
+        public List<BlackWidows> BlackWidows { get; set; }
     }
 }
