@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Extensions;
 
@@ -16,8 +15,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Visitors
     /// </summary>
     public class ListObjectTypeVisitor : TypeVisitor
     {
-        private readonly Regex _schemeKeyRegex = new Regex("(?<num>[0-9])+$");
-
         /// <inheritdoc />
         public ListObjectTypeVisitor(VisitorCollection visitorCollection)
             : base(visitorCollection)
@@ -87,14 +84,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Visitors
 
                 do
                 {
-                    var regexMatch = this._schemeKeyRegex.Match(name);
-                    var num = regexMatch.Success
-                        ? int.Parse(regexMatch.Groups["num"].Value)
-                        : 0;
+                    var lastWord = name.Split('_').LastOrDefault() ?? string.Empty;
+                    int.TryParse(lastWord, out var num);
 
-                    if (regexMatch.Success)
+                    if (!string.IsNullOrEmpty(lastWord))
                     {
-                        name = name.Replace(regexMatch.Value, string.Empty);
+                        name = name.Replace($"_{lastWord}", string.Empty);
                     }
 
                     name += $"_{++num}";
