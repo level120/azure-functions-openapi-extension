@@ -55,6 +55,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Visitors
 
             var subAcceptor = new OpenApiSchemaAcceptor()
             {
+                Parent = instance,
                 Types = types,
                 RootSchemas = instance.RootSchemas,
                 Schemas = schemas,
@@ -76,34 +77,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Visitors
                 items.Reference = reference;
             }
 
-            // if contains key on subAcceptor, the special keyword append.
-            if (subAcceptor.Schemas.ContainsKey(name))
-            {
-                var scheme = instance.Schemas[name];
-                instance.Schemas.Remove(name);
-
-                do
-                {
-                    var lastWord = name.Split('_').LastOrDefault() ?? string.Empty;
-                    int.TryParse(lastWord, out var num);
-
-                    if (!string.IsNullOrEmpty(lastWord))
-                    {
-                        name = name.Replace($"_{lastWord}", string.Empty);
-                    }
-
-                    name += $"_{++num}";
-
-                } while (subAcceptor.Schemas.ContainsKey(name));
-
-                instance.Schemas[name] = scheme;
-            }
-
             instance.Schemas[name].Items = items;
 
             // Adds schemas to the root.
             var schemasToBeAdded = subAcceptor.Schemas
-                                              .Where(p => !instance.Schemas.Keys.Contains(p.Key))
                                               .Where(p => p.Value.IsOpenApiSchemaObject()
                                                        || p.Value.IsOpenApiSchemaArray()
                                                        || p.Value.IsOpenApiSchemaDictionary()

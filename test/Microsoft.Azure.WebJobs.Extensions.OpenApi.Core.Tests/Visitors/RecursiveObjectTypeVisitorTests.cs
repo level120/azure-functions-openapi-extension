@@ -27,7 +27,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Tests.Visitors
         [TestInitialize]
         public void Init()
         {
-            this._visitorCollection = new VisitorCollection();
+            this._visitorCollection = VisitorCollection.CreateInstance();
             this._visitor = new RecursiveObjectTypeVisitor(this._visitorCollection);
             this._strategy = new CamelCaseNamingStrategy();
         }
@@ -142,6 +142,33 @@ namespace Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Tests.Visitors
 
             result.Type.Should().Be(dataType);
             result.Format.Should().Be(dataFormat);
+        }
+
+        [TestMethod]
+        public void Given_Alias_Type_When_Visit_Invoked_Then_It_Should_Return_All_Sub_Schemas()
+        {
+            var originSchemaKey = "fakeAliasRecursiveModel";
+            var visitType = typeof(FakeAliasRecursiveModel);
+            var acceptor = new OpenApiSchemaAcceptor();
+
+            this._visitor.Visit(acceptor, new KeyValuePair<string, Type>(originSchemaKey, visitType), this._strategy);
+
+            acceptor.Schemas.Count.Should().Be(1);
+            acceptor.Schemas.Should().ContainKey("fakeAliasRecursiveModel");
+
+            acceptor.Schemas["fakeAliasRecursiveModel"].Type.Should().Be("object");
+            acceptor.Schemas["fakeAliasRecursiveModel"].Properties.Count.Should().Be(2);
+            acceptor.Schemas["fakeAliasRecursiveModel"].Type.Should().Be("object");
+            acceptor.Schemas["fakeAliasRecursiveModel"].Reference.Type.Should().Be(ReferenceType.Schema);
+            acceptor.Schemas["fakeAliasRecursiveModel"].Reference.Id.Should().Be("fakeAliasRecursiveModel");
+
+            acceptor.RootSchemas.Count.Should().Be(2);
+
+            acceptor.RootSchemas.Should().ContainKey("fakeAliasRecursiveSubModel");
+            acceptor.RootSchemas["fakeAliasRecursiveSubModel"].Type.Should().Be("object");
+            acceptor.RootSchemas["fakeAliasRecursiveSubModel"].Properties.Count.Should().Be(2);
+            acceptor.RootSchemas["fakeAliasRecursiveSubModel"].Reference.Type.Should().Be(ReferenceType.Schema);
+            acceptor.RootSchemas["fakeAliasRecursiveSubModel"].Reference.Id.Should().Be("fakeAliasRecursiveSubModel");
         }
     }
 }
